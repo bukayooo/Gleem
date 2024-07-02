@@ -11,6 +11,7 @@ enableScreens();
 type RootStackParamList = {
   Home: undefined; // No parameters expected for HomeScreen
   Schedule: undefined; // No parameters expected for SchedulingScreen
+  Address: undefined; // No parameters expected for AddressScreen
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

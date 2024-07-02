@@ -79,6 +79,10 @@ function SchedulingScreen() {
   const [subscribe, setSubscribe] = useState(false);
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
 
+  const goToAddress = () => {
+    navigation.navigate('Address');
+  };
+
   const renderDateButtons = () => {
     let dates = [];
     for (let i = 0; i < 7; i++) {
@@ -217,7 +221,9 @@ function SchedulingScreen() {
         </Text>
         <TouchableOpacity
           style={styles.submitButton}
-          onPress={() => console.log('Confirmed')}>
+          onPress={() => {
+            console.log('Confirmed');
+          }}>
           <Text style={styles.confirmButtonText}>Confirm</Text>
         </TouchableOpacity>
       </View>
@@ -466,3 +472,4 @@ const styles = StyleSheet.create({
 });
 
 export default SchedulingScreen;
+

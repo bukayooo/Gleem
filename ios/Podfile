@@ -5,19 +5,12 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+platform :ios, '13.0'
 prepare_react_native_project!
 
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-#
-# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-# ```
 flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+
+pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -28,8 +21,6 @@ end
 target 'gleem' do
   config = use_native_modules!
   pod 'RNScreens', :path => '../node_modules/react-native-screens'
-
-
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -60,6 +51,15 @@ target 'gleem' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+    # __apply_Xcode_12_5_M1_post_install_workaround(installer)
+
+    # Fix for RCT-Folly
+    installer.pods_project.targets.each do |target|
+      if target.name == "RCT-Folly"
+        target.build_configurations.each do |config|
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'FOLLY_HAVE_CLOCK_GETTIME=1']
+        end
+      end
+    end
   end
 end
