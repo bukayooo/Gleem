@@ -7,6 +7,7 @@ import {
   Modal,
   SafeAreaView,
   SectionList,
+  ScrollView,
 } from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import axios from 'axios';
@@ -372,27 +373,36 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
               }}
               fetchDetails={true}
               enablePoweredByContainer={false}
+              styles={{
+                container: styles.searchContainer,
+                textInputContainer: styles.searchInputContainer,
+                textInput: styles.searchInput,
+                listView: styles.searchListView,
+                row: styles.searchRow,
+                separator: styles.searchSeparator,
+              }}
             />
-            <Text style={styles.sectionTitle}>Saved Addresses</Text>
-            {addresses.map(address => (
-              <View key={address.id} style={styles.savedAddressItem}>
-                <TouchableOpacity
-                  onPress={() => {
-                    updateSelectedAddress(address);
-                    setModalVisible(false);
-                  }}
-                  style={styles.savedAddressButton}>
-                  <Text style={styles.savedAddressText}>
-                    {getStreetAddress(address.full_address)}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => deleteAddress(address.id.toString())}
-                  style={styles.deleteButton}>
-                  <Text style={styles.deleteButtonText}>×</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+            <View style={styles.savedAddressesContainer}>
+              {addresses.map(address => (
+                <View key={address.id} style={styles.savedAddressItem}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      updateSelectedAddress(address);
+                      setModalVisible(false);
+                    }}
+                    style={styles.savedAddressButton}>
+                    <Text style={styles.savedAddressText}>
+                      {getStreetAddress(address.full_address)}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => deleteAddress(address.id.toString())}
+                    style={styles.deleteButton}>
+                    <Text style={styles.deleteButtonText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
           </View>
         </SafeAreaView>
       </Modal>
@@ -512,8 +522,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   modalTitle: {
     fontSize: 18,
@@ -525,16 +533,11 @@ const styles = StyleSheet.create({
   placeholderView: {
     width: 24,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  searchContainer: {
+    marginBottom: 20,
   },
-  savedAddressItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 15,
+  searchInputContainer: {
+    backgroundColor: 'white',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
@@ -543,8 +546,50 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    overflow: 'hidden',
+  },
+  searchInput: {
+    height: 40,
+    fontSize: 16,
+    backgroundColor: 'transparent',
+  },
+  searchListView: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    marginTop: 5,
+    backgroundColor: 'white',
+  },
+  searchRow: {
+    padding: 15,
+  },
+  searchSeparator: {
+    height: 1,
+    backgroundColor: '#ccc',
+  },
+  savedAddressesContainer: {
+    marginTop: 295,
+  },
+  savedAddressItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
     backgroundColor: 'white',
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   savedAddressButton: {
     flex: 1,
@@ -567,5 +612,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
-

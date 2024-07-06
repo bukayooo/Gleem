@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     color: 'white',
+    textAlign: 'center',
   },
 });
 
