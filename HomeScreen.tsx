@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,10 @@ import {
   SafeAreaView,
   SectionList,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import {Platform} from 'react-native';
-
+import BedroomBathroomPopup from './BedroomBathroomPopup';
 interface Extras {
   WindowCleaning: boolean;
   OvenCleaning: boolean;
@@ -22,9 +20,14 @@ interface Extras {
 }
 
 interface Address {
-  id: string;
+  id: string | number;
   label: string;
-  fullAddress: string;
+  full_address: string; // Change this from fullAddress to full_address
+  bedrooms: number;
+  bathrooms: number;
+  selected: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 const extraTimeAdjustments: Record<keyof Extras, number> = {
@@ -34,8 +37,16 @@ const extraTimeAdjustments: Record<keyof Extras, number> = {
   DisinfectSurfaces: 15,
 };
 
-const getStreetAddress = (fullAddress: string) => {
-  return fullAddress.split(',')[0];
+const getStreetAddress = (fullAddress: string | undefined) => {
+  if (!fullAddress) {
+    return 'Address not available';
+  }
+  const parts = fullAddress.split(',');
+  return (
+    parts[0].trim() ||
+    fullAddress.split(' ').slice(0, 3).join(' ') ||
+    'Address not available'
+  );
 };
 
 const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
@@ -51,52 +62,158 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
 
+  const [showBedroomBathroomPopup, setShowBedroomBathroomPopup] =
+    useState(false);
+  const [tempAddress, setTempAddress] = useState<Address | null>(null);
+
+  const [bedroomCount, setBedroomCount] = useState(1);
+  const [bathroomCount, setBathroomCount] = useState(1);
+
   const BASE_URL =
     Platform.OS === 'ios' ? 'http://127.0.0.1:3000' : 'http://10.0.2.2:3000';
 
-  const fetchAddresses = async () => {
+  const fetchAddresses = useCallback(async () => {
     try {
       const response = await axios.get(`${BASE_URL}/api/v1/addresses`);
+      console.log('Fetched addresses:', response.data);
       setAddresses(response.data);
-      const selectedAddress = response.data.find(
-        (address: Address) => address.selected,
+      const foundSelectedAddress = response.data.find(
+        (address: Address) => address.selected === true,
       );
-      setSelectedAddress(selectedAddress || null);
+      if (foundSelectedAddress) {
+        console.log('Found selected address:', foundSelectedAddress);
+        setSelectedAddress(foundSelectedAddress);
+      } else {
+        console.log('No selected address found, setting to null');
+        setSelectedAddress(null);
+      }
     } catch (error) {
       console.error('Error fetching addresses:', error);
     }
-  };
+  }, [BASE_URL]);
 
-  const saveAddress = async (address: Address) => {
+  const saveAddress = async (
+    address: Omit<Address, 'id' | 'selected' | 'created_at' | 'updated_at'>,
+  ) => {
+    console.log('Saving address:', address);
     try {
-      await axios.post(`${BASE_URL}/api/v1/addresses`, address);
-      fetchAddresses(); // Refresh the list of addresses
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/addresses`,
+        {
+          address: {
+            full_address: address.full_address,
+            label: address.label,
+            bedrooms: address.bedrooms,
+            bathrooms: address.bathrooms,
+          },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      console.log('Save address response:', response.data);
+      const savedAddress = response.data;
+      setAddresses(prev => [...prev, savedAddress]);
+      if (savedAddress.selected) {
+        setSelectedAddress(savedAddress);
+      } else {
+        await updateSelectedAddress(savedAddress);
+      }
     } catch (error) {
       console.error('Error saving address:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+        console.error('Request data:', error.config?.data);
+      }
     }
   };
-
   const updateSelectedAddress = async (address: Address) => {
+    console.log('Updating selected address:', address);
     try {
-      await axios.post(
+      const response = await axios.post(
         `${BASE_URL}/api/v1/addresses/${address.id}/set_selected`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        },
       );
-      fetchAddresses();
+      console.log('Update response:', response.data);
+      if (response.data.success) {
+        const updatedAddress = response.data.address;
+        console.log('Setting new selected address:', updatedAddress);
+        setSelectedAddress(updatedAddress);
+        setAddresses(prevAddresses =>
+          prevAddresses.map(addr =>
+            addr.id === updatedAddress.id
+              ? updatedAddress
+              : {...addr, selected: false},
+          ),
+        );
+      } else {
+        console.error(
+          'Failed to update selected address:',
+          response.data.error,
+        );
+      }
     } catch (error) {
       console.error('Error setting selected address:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response data:', error.response?.data);
+        console.error('Response status:', error.response?.status);
+        console.error('Response headers:', error.response?.headers);
+      }
+    }
+  };
+  const deleteAddress = async (addressId: string) => {
+    try {
+      console.log('Deleting address:', addressId);
+      const response = await axios.delete(
+        `${BASE_URL}/api/v1/addresses/${addressId}`,
+      );
+      console.log('Delete response:', response.data);
+      if (selectedAddress?.id === addressId) {
+        setSelectedAddress(null);
+      }
+      await fetchAddresses();
+    } catch (error) {
+      console.error('Error deleting address:', error);
     }
   };
 
   useEffect(() => {
     fetchAddresses();
-  }, []);
+  }, [fetchAddresses]);
+
+  useEffect(() => {
+    if (selectedAddress) {
+      const newPrice = calculatePrice();
+      console.log('New price calculated:', newPrice);
+      // If you have a state for price, update it here
+      // setPrice(newPrice);
+    }
+  }, [selectedAddress, extras]);
+
+  useEffect(() => {
+    console.log('selectedAddress changed:', selectedAddress);
+  }, [selectedAddress]);
 
   const toggleExtra = (extra: keyof Extras) => {
     setExtras(prev => ({...prev, [extra]: !prev[extra]}));
   };
 
   const calculatePrice = (): number => {
-    let price = 50 + 25 * bedrooms + 15 * bathrooms;
+    if (!selectedAddress) {
+      return 0;
+    }
+    let price =
+      50 + 50 * selectedAddress.bedrooms + 40 * selectedAddress.bathrooms;
     Object.keys(extras).forEach(extra => {
       if (extras[extra as keyof Extras]) {
         price += extraTimeAdjustments[extra as keyof Extras];
@@ -107,72 +224,60 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
   const goToSchedule = () => {
     navigation.navigate('Schedule', {
-      bedrooms,
-      bathrooms,
       extras,
       price: calculatePrice(),
       address: selectedAddress,
+      bedrooms: selectedAddress?.bedrooms || 1,
+      bathrooms: selectedAddress?.bathrooms || 1,
     });
   };
 
-  const increment = (category: 'bedrooms' | 'bathrooms') => {
-    if (category === 'bedrooms') {
-      setBedrooms(prev => prev + 1);
+  const handleSaveAddress = async (
+    newBedrooms: number,
+    newBathrooms: number,
+  ) => {
+    console.log('handleSaveAddress called with:', newBedrooms, newBathrooms);
+    if (tempAddress) {
+      console.log('Temp address found:', tempAddress);
+      const addressToSave = {
+        ...tempAddress,
+        bedrooms: newBedrooms,
+        bathrooms: newBathrooms,
+        full_address: tempAddress.full_address, // Change this line
+      };
+      console.log('Address to save:', addressToSave);
+      await saveAddress(addressToSave);
+      setShowBedroomBathroomPopup(false);
+      setTempAddress(null);
+      setModalVisible(false);
+      setBedroomCount(1);
+      setBathroomCount(1);
     } else {
-      setBathrooms(prev => prev + 1);
+      console.log('No temp address found');
     }
   };
 
-  const decrement = (category: 'bedrooms' | 'bathrooms') => {
-    if (category === 'bedrooms' && bedrooms > 1) {
-      setBedrooms(prev => prev - 1);
-    } else if (category === 'bathrooms' && bathrooms > 1) {
-      setBathrooms(prev => prev - 1);
-    }
-  };
+  const renderHeader = () => {
+    console.log('renderHeader - selectedAddress:', selectedAddress);
+    console.log('renderHeader - fullAddress:', selectedAddress?.full_address);
 
-  const renderHeader = () => (
-    <>
-      <Text style={styles.homeHeader}>Gleem</Text>
-      <View style={styles.contentContainer}>
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          style={styles.addressButton}>
-          <Text>
-            {selectedAddress
-              ? getStreetAddress(selectedAddress.fullAddress)
-              : 'Add an address'}
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.selectorContainer}>
-          <View style={styles.selector}>
-            <Text style={styles.selectorText}>Bedrooms:</Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => decrement('bedrooms')}>
-                <Text style={styles.buttonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.numberText}>{bedrooms}</Text>
-              <TouchableOpacity onPress={() => increment('bedrooms')}>
-                <Text style={styles.buttonText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.selector}>
-            <Text style={styles.selectorText}>Bathrooms:</Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={() => decrement('bathrooms')}>
-                <Text style={styles.buttonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.numberText}>{bathrooms}</Text>
-              <TouchableOpacity onPress={() => increment('bathrooms')}>
-                <Text style={styles.buttonText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+    return (
+      <>
+        <Text style={styles.homeHeader}>Gleem</Text>
+        <View style={styles.contentContainer}>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={styles.addressButton}>
+            <Text>
+              {selectedAddress
+                ? getStreetAddress(selectedAddress.full_address)
+                : 'Add an address'}
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
-    </>
-  );
+      </>
+    );
+  };
 
   const renderExtras = () => (
     <View style={styles.extrasGrid}>
@@ -191,8 +296,16 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
   const renderFooter = () => (
     <View style={styles.priceContainer}>
-      <Text style={styles.priceText}>${calculatePrice().toFixed(2)}</Text>
-      <TouchableOpacity style={styles.scheduleButton} onPress={goToSchedule}>
+      {selectedAddress && (
+        <Text style={styles.priceText}>${calculatePrice().toFixed(2)}</Text>
+      )}
+      <TouchableOpacity
+        style={[
+          styles.scheduleButton,
+          !selectedAddress && styles.disabledButton,
+        ]}
+        onPress={goToSchedule}
+        disabled={!selectedAddress}>
         <Text style={styles.scheduleButtonText}>Schedule Cleaning</Text>
       </TouchableOpacity>
     </View>
@@ -232,46 +345,70 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
             <GooglePlacesAutocomplete
               placeholder="Search for an address"
               onPress={(data, details = null) => {
+                console.log('Address selected:', data.description);
                 const newAddress = {
                   id: Date.now().toString(),
                   label: 'Custom',
                   fullAddress: data.description,
+                  bedrooms: 1,
+                  bathrooms: 1,
                 };
-                saveAddress(newAddress);
-                updateSelectedAddress(newAddress);
+                console.log('New address object:', newAddress);
+                setTempAddress({
+                  ...newAddress,
+                  full_address: newAddress.fullAddress,
+                  selected: false,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                });
+                setBedroomCount(1);
+                setBathroomCount(1);
+                setShowBedroomBathroomPopup(true);
                 setModalVisible(false);
               }}
               query={{
                 key: 'AIzaSyDFmVcJ9RE19ikMmiaQPX7pEUOCblmtCDk',
                 language: 'en',
               }}
-              styles={{
-                container: styles.autocompleteContainer,
-                textInputContainer: styles.autocompleteInputContainer,
-                textInput: styles.autocompleteInput,
-                listView: styles.autocompleteListView,
-              }}
               fetchDetails={true}
               enablePoweredByContainer={false}
-              debounce={300}
             />
             <Text style={styles.sectionTitle}>Saved Addresses</Text>
             {addresses.map(address => (
-              <TouchableOpacity
-                key={address.id}
-                style={styles.savedAddressItem}
-                onPress={() => {
-                  updateSelectedAddress(address);
-                  setModalVisible(false);
-                }}>
-                <Text style={styles.savedAddressText}>
-                  {address.fullAddress}
-                </Text>
-              </TouchableOpacity>
+              <View key={address.id} style={styles.savedAddressItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    updateSelectedAddress(address);
+                    setModalVisible(false);
+                  }}
+                  style={styles.savedAddressButton}>
+                  <Text style={styles.savedAddressText}>
+                    {getStreetAddress(address.full_address)}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => deleteAddress(address.id.toString())}
+                  style={styles.deleteButton}>
+                  <Text style={styles.deleteButtonText}>×</Text>
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
         </SafeAreaView>
       </Modal>
+      <BedroomBathroomPopup
+        visible={showBedroomBathroomPopup}
+        onClose={() => {
+          console.log('BedroomBathroomPopup closed');
+          setShowBedroomBathroomPopup(false);
+          setTempAddress(null);
+          setBedroomCount(1);
+          setBathroomCount(1);
+        }}
+        onSave={handleSaveAddress}
+        initialBedrooms={bedroomCount}
+        initialBathrooms={bathroomCount}
+      />
     </SafeAreaView>
   );
 };
@@ -306,40 +443,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     backgroundColor: 'white',
     marginBottom: 10,
-  },
-  selectorContainer: {
-    width: '100%',
-  },
-  selector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginBottom: 10,
-    backgroundColor: 'white',
-  },
-  selectorText: {
-    fontSize: 24,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  buttonText: {
-    padding: 12,
-    fontSize: 24,
-  },
-  numberText: {
-    fontSize: 24,
-    paddingHorizontal: 10,
   },
   extrasGrid: {
     flexDirection: 'row',
@@ -393,6 +496,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: 'black',
   },
+  disabledButton: {
+    opacity: 0.5,
+  },
   modalContainer: {
     flex: 1,
     backgroundColor: 'white',
@@ -419,28 +525,6 @@ const styles = StyleSheet.create({
   placeholderView: {
     width: 24,
   },
-  autocompleteContainer: {
-    flex: 0,
-    marginBottom: 20,
-  },
-  autocompleteInputContainer: {
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-  },
-  autocompleteInput: {
-    fontSize: 16,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-    padding: 10,
-  },
-  autocompleteListView: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderBottomLeftRadius: 5,
-    borderBottomRightRadius: 5,
-    marginTop: 1,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -449,6 +533,7 @@ const styles = StyleSheet.create({
   savedAddressItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 15,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -461,10 +546,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginBottom: 10,
   },
-  savedAddressText: {
+  savedAddressButton: {
     flex: 1,
-    fontSize: 14,
+    borderRadius: 5,
+  },
+  savedAddressText: {
+    fontSize: 16,
+  },
+  deleteButton: {
+    marginLeft: 10,
+    padding: 4,
+    backgroundColor: '#ff6b6b',
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 
 export default HomeScreen;
+
+
