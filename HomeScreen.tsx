@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   SectionList,
   ScrollView,
+  Image,
 } from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import axios from 'axios';
@@ -265,6 +266,10 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
     return (
       <>
         <Text style={styles.homeHeader}>Gleem</Text>
+        <Image
+          source={require('./assets/home-cleaning-graphic.png')}
+          style={styles.headerImage}
+        />
         <View style={styles.contentContainer}>
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
@@ -485,7 +490,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f4f4',
   },
   priceContainer: {
-    marginTop: 150,
+    marginTop: 30,
     alignItems: 'center',
   },
   priceText: {
@@ -608,6 +613,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  headerImage: {
+    width: '90%',
+    height: 300,
+    resizeMode: 'cover',
+    borderRadius: 10,
+    marginBottom: 20,
+    alignSelf: 'center',
   },
 });
 
