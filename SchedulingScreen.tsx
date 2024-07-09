@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   selectedTimeSlot: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 15,
+    padding: 20,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   timeSlot: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 15,
+    padding: 20,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -422,14 +422,6 @@ const styles = StyleSheet.create({
   },
   selectedSubscriptionText: {
     fontSize: 16,
-  },
-  addressForm: {
-    marginTop: 20,
-    width: '100%',
-  },
-  cityStateZip: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   dropdownBox: {},
   dropdownButton: {},

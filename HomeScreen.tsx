@@ -9,10 +9,12 @@ import {
   SectionList,
   ScrollView,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import axios from 'axios';
-import {Platform} from 'react-native';
 import BedroomBathroomPopup from './BedroomBathroomPopup';
 interface Extras {
   WindowCleaning: boolean;
@@ -315,6 +317,37 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
     </View>
   );
 
+  const renderAddressList = () => (
+    <View style={styles.savedAddressesWrapper}>
+      {addresses.length >= 6 && <View style={styles.divider} />}
+      <ScrollView
+        style={styles.savedAddressesContainer}
+        contentContainerStyle={styles.savedAddressesContent}>
+        {addresses.map(address => (
+          <View key={address.id} style={styles.savedAddressItemWrapper}>
+            <View style={styles.savedAddressItem}>
+              <TouchableOpacity
+                onPress={() => {
+                  updateSelectedAddress(address);
+                  setModalVisible(false);
+                }}
+                style={styles.savedAddressButton}>
+                <Text style={styles.savedAddressText}>
+                  {getStreetAddress(address.full_address)}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => deleteAddress(address.id.toString())}
+                style={styles.deleteButton}>
+                <Text style={styles.deleteButtonText}>×</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+
   const sections = [{title: 'Extras', data: [{}]}];
 
   return (
@@ -345,68 +378,55 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
             <Text style={styles.modalTitle}>Addresses</Text>
             <View style={styles.placeholderView} />
           </View>
-          <View style={styles.modalContent}>
-            <GooglePlacesAutocomplete
-              placeholder="Search for an address"
-              onPress={(data, details = null) => {
-                console.log('Address selected:', data.description);
-                const newAddress = {
-                  id: Date.now().toString(),
-                  label: 'Custom',
-                  fullAddress: data.description,
-                  bedrooms: 1,
-                  bathrooms: 1,
-                };
-                console.log('New address object:', newAddress);
-                setTempAddress({
-                  ...newAddress,
-                  full_address: newAddress.fullAddress,
-                  selected: false,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                });
-                setBedroomCount(1);
-                setBathroomCount(1);
-                setShowBedroomBathroomPopup(true);
-                setModalVisible(false);
-              }}
-              query={{
-                key: 'AIzaSyDFmVcJ9RE19ikMmiaQPX7pEUOCblmtCDk',
-                language: 'en',
-              }}
-              fetchDetails={true}
-              enablePoweredByContainer={false}
-              styles={{
-                container: styles.searchContainer,
-                textInputContainer: styles.searchInputContainer,
-                textInput: styles.searchInput,
-                listView: styles.searchListView,
-                row: styles.searchRow,
-                separator: styles.searchSeparator,
-              }}
-            />
-            <View style={styles.savedAddressesContainer}>
-              {addresses.map(address => (
-                <View key={address.id} style={styles.savedAddressItem}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      updateSelectedAddress(address);
-                      setModalVisible(false);
-                    }}
-                    style={styles.savedAddressButton}>
-                    <Text style={styles.savedAddressText}>
-                      {getStreetAddress(address.full_address)}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => deleteAddress(address.id.toString())}
-                    style={styles.deleteButton}>
-                    <Text style={styles.deleteButtonText}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalContent}
+            keyboardVerticalOffset={100}>
+            <View style={styles.searchContainer}>
+              <GooglePlacesAutocomplete
+                placeholder="Search for an address"
+                onPress={(data, details = null) => {
+                  console.log('Address selected:', data.description);
+                  const newAddress = {
+                    id: Date.now().toString(),
+                    label: 'Custom',
+                    fullAddress: data.description,
+                    bedrooms: 1,
+                    bathrooms: 1,
+                  };
+                  console.log('New address object:', newAddress);
+                  setTempAddress({
+                    ...newAddress,
+                    full_address: newAddress.fullAddress,
+                    selected: false,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  });
+                  setBedroomCount(1);
+                  setBathroomCount(1);
+                  setShowBedroomBathroomPopup(true);
+                  setModalVisible(false);
+                }}
+                query={{
+                  key: 'AIzaSyDFmVcJ9RE19ikMmiaQPX7pEUOCblmtCDk',
+                  language: 'en',
+                }}
+                fetchDetails={true}
+                enablePoweredByContainer={false}
+                styles={{
+                  container: styles.searchInputContainer,
+                  textInput: styles.searchInput,
+                  listView: [
+                    styles.searchListView,
+                    addresses.length >= 6 && styles.searchListViewWithDivider,
+                  ],
+                  row: styles.searchRow,
+                  separator: styles.searchSeparator,
+                }}
+              />
             </View>
-          </View>
+            {renderAddressList()}
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
       <BedroomBathroomPopup
@@ -538,45 +558,64 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     marginBottom: 20,
+    zIndex: 1,
   },
   searchInputContainer: {
     backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    overflow: 'hidden',
   },
   searchInput: {
     height: 40,
     fontSize: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    paddingHorizontal: 10,
   },
   searchListView: {
+    backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
+    borderRadius: 10,
+    marginTop: 5,
+    position: 'absolute',
+    top: 40,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+    maxHeight: Dimensions.get('window').height * 0.3,
+  },
+  searchListViewWithDivider: {
+    marginBottom: 11,
+  },
+  searchRow: {
+    padding: 13,
+  },
+  searchSeparator: {
+    height: 1,
+    backgroundColor: '#ddd',
+  },
+  savedAddressesWrapper: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
+  savedAddressesContainer: {
+    maxHeight: '60%',
+  },
+  savedAddressesContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 10,
+  },
+  savedAddressItemWrapper: {
+    marginBottom: 10,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    marginTop: 5,
-    backgroundColor: 'white',
-  },
-  searchRow: {
-    padding: 15,
-  },
-  searchSeparator: {
-    height: 1,
-    backgroundColor: '#ccc',
-  },
-  savedAddressesContainer: {
-    marginTop: 295,
   },
   savedAddressItem: {
     flexDirection: 'row',
@@ -587,29 +626,26 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     backgroundColor: 'white',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   savedAddressButton: {
     flex: 1,
-    borderRadius: 5,
   },
   savedAddressText: {
     fontSize: 16,
   },
   deleteButton: {
     marginLeft: 10,
-    padding: 4,
+    padding: 5,
     backgroundColor: '#ff6b6b',
-    borderRadius: 5,
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteButtonText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   headerImage: {
@@ -619,6 +655,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
     alignSelf: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    width: '100%',
+    marginVertical: 10,
   },
 });
 
