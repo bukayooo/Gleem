@@ -319,10 +319,10 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
 
   const renderAddressList = () => (
     <View style={styles.savedAddressesWrapper}>
-      {addresses.length >= 6 && <View style={styles.divider} />}
       <ScrollView
         style={styles.savedAddressesContainer}
         contentContainerStyle={styles.savedAddressesContent}>
+        {addresses.length >= 6 && <View style={styles.divider} />}
         {addresses.map(address => (
           <View key={address.id} style={styles.savedAddressItemWrapper}>
             <View style={styles.savedAddressItem}>
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -557,14 +557,20 @@ const styles = StyleSheet.create({
     width: 24,
   },
   searchContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
+    paddingHorizontal: 15,
     zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   searchInputContainer: {
     backgroundColor: 'white',
   },
   searchInput: {
-    height: 40,
+    height: 50,
     fontSize: 16,
     backgroundColor: 'white',
     borderWidth: 1,
@@ -579,7 +585,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 5,
     position: 'absolute',
-    top: 40,
+    top: 50,
     left: 0,
     right: 0,
     zIndex: 2,
@@ -605,8 +611,7 @@ const styles = StyleSheet.create({
   },
   savedAddressesContent: {
     flexGrow: 1,
-    justifyContent: 'flex-end',
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
   },
   savedAddressItemWrapper: {
     marginBottom: 10,
@@ -660,7 +665,7 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#ddd',
     width: '100%',
-    marginVertical: 10,
+    marginBottom: 10,
   },
 });
 
