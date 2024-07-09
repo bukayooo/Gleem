@@ -24,7 +24,7 @@ interface Extras {
 interface Address {
   id: string | number;
   label: string;
-  full_address: string; // Change this from fullAddress to full_address
+  full_address: string;
   bedrooms: number;
   bathrooms: number;
   selected: boolean;
@@ -197,8 +197,6 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
     if (selectedAddress) {
       const newPrice = calculatePrice();
       console.log('New price calculated:', newPrice);
-      // If you have a state for price, update it here
-      // setPrice(newPrice);
     }
   }, [selectedAddress, extras]);
 
@@ -245,7 +243,7 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
         ...tempAddress,
         bedrooms: newBedrooms,
         bathrooms: newBathrooms,
-        full_address: tempAddress.full_address, // Change this line
+        full_address: tempAddress.full_address,
       };
       console.log('Address to save:', addressToSave);
       await saveAddress(addressToSave);
@@ -432,12 +430,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    alignItems: 'center', // Center items horizontally
+    alignItems: 'center',
   },
   homeHeader: {
     fontSize: 32,
     fontWeight: 'bold',
-    textAlign: 'center', // Center text
+    textAlign: 'center',
     paddingVertical: 20,
   },
   contentContainer: {

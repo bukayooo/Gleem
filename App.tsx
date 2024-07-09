@@ -7,11 +7,10 @@ import {enableScreens} from 'react-native-screens';
 
 enableScreens();
 
-// Define the types for the navigation stack
 type RootStackParamList = {
-  Home: undefined; // No parameters expected for HomeScreen
-  Schedule: undefined; // No parameters expected for SchedulingScreen
-  Address: undefined; // No parameters expected for AddressScreen
+  Home: undefined;
+  Schedule: undefined;
+  Address: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

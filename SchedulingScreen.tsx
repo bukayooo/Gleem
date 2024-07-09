@@ -91,9 +91,9 @@ function SchedulingScreen() {
       const isSelected =
         selectedDate && date.toDateString() === selectedDate.toDateString();
       const formattedDate = date.toLocaleDateString('en-US', {
-        weekday: 'short', // Short name of the day
-        month: 'short', // Short name of the month
-        day: 'numeric', // Numeric day without leading zeros
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
       });
       dates.push(
         <TouchableOpacity
@@ -108,22 +108,22 @@ function SchedulingScreen() {
   };
 
   const calculateTimeSlots = () => {
-    let baseDuration = 60; // Base duration in minutes
-    let extraDuration = bedrooms * 30 + bathrooms * 30; // Additional duration based on bedrooms and bathrooms
+    let baseDuration = 60;
+    let extraDuration = bedrooms * 30 + bathrooms * 30;
     Object.keys(extras).forEach(key => {
       if (extras[key]) {
-        extraDuration += 15; // Each extra adds 15 minutes
+        extraDuration += 15;
       }
     });
 
-    let totalDuration = baseDuration + extraDuration; // Total cleaning duration
+    let totalDuration = baseDuration + extraDuration;
     let slots = [];
-    let lastSlotHour = 20 - Math.ceil(totalDuration / 60); // Calculate the starting hour for the last slot
+    let lastSlotHour = 20 - Math.ceil(totalDuration / 60);
 
     for (let hour = 8; hour <= lastSlotHour; hour++) {
       let startTime = new Date();
       startTime.setHours(hour, 0, 0, 0);
-      let endTime = new Date(startTime.getTime() + totalDuration * 60000); // Calculate ending time
+      let endTime = new Date(startTime.getTime() + totalDuration * 60000);
 
       const isSelected =
         selectedTime && startTime.getTime() === selectedTime.getTime();
@@ -200,7 +200,7 @@ function SchedulingScreen() {
                   ]}
                   onPress={() => {
                     setCurrentSubscriptionType(type);
-                    setDiscountedPrice(price * 0.85); // Apply discount here
+                    setDiscountedPrice(price * 0.85);
                   }}>
                   <Text
                     style={
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   backButtonText: {
-    fontSize: 20, // Adjust font size here for back button text
+    fontSize: 20,
   },
 
   dateTimeContainer: {
@@ -271,13 +271,13 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 10, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 10,
     alignItems: 'center',
     backgroundColor: 'white',
   },
@@ -291,13 +291,13 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 10, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 10,
     alignItems: 'center',
     backgroundColor: '#f4f4f4',
   },
@@ -305,13 +305,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 15,
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 10, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 10,
     backgroundColor: '#f4f4f4',
   },
   timeSlotContainer: {
@@ -321,13 +321,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 15,
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 10, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 10,
     backgroundColor: 'white',
   },
   timeSlotText: {
@@ -347,11 +347,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
-    borderRadius: 25, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     backgroundColor: 'black',
   },
   checkboxButton: {
@@ -362,17 +362,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
-    borderRadius: 25, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   checkboxText: {
     color: 'white',
   },
   subscribeLabel: {
-    fontSize: 18, // Adjust as needed
+    fontSize: 18,
   },
 
   subscriptionCheckboxRow: {
@@ -390,13 +390,13 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 10, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 10,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
@@ -407,21 +407,21 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 10, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 10,
     alignItems: 'center',
     backgroundColor: '#f4f4f4',
   },
   subscriptionText: {
-    fontSize: 16, // Adjust as needed
+    fontSize: 16,
   },
   selectedSubscriptionText: {
-    fontSize: 16, // Adjust as needed
+    fontSize: 16,
   },
   addressForm: {
     marginTop: 20,
@@ -442,11 +442,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     margin: 10,
     borderColor: '#ccc',
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
     backgroundColor: 'white',
   },
   priceDisplay: {
@@ -456,18 +456,17 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: '#a9d0de',
     padding: 15,
-    borderRadius: 10, // Rounded corners
-    shadowColor: '#000', // Shadow color
-    shadowOffset: {width: 0, height: 2}, // Shadow offset
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // Elevation for Android shadow
-    margin: 20, // Outer spacing
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    margin: 20,
     fontSize: 24,
   },
   confirmButtonText: {
-    // Existing styles
-    fontSize: 24, // Adjust as needed
+    fontSize: 24,
   },
 });
 
