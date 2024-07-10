@@ -259,6 +259,12 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
     }
   };
 
+  const getMaxHeight = () => {
+    const baseHeight = 10; // 10% for one address
+    const calculatedHeight = Math.min(addresses.length * baseHeight, 60); // Cap at 60%
+    return `${calculatedHeight}%`;
+  };
+
   const renderHeader = () => {
     console.log('renderHeader - selectedAddress:', selectedAddress);
     console.log('renderHeader - fullAddress:', selectedAddress?.full_address);
@@ -320,7 +326,7 @@ const HomeScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const renderAddressList = () => (
     <View style={styles.savedAddressesWrapper}>
       <ScrollView
-        style={styles.savedAddressesContainer}
+        style={[styles.savedAddressesContainer, {maxHeight: getMaxHeight()}]}
         contentContainerStyle={styles.savedAddressesContent}>
         {addresses.length >= 6 && <View style={styles.divider} />}
         {addresses.map(address => (
@@ -607,7 +613,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   savedAddressesContainer: {
-    maxHeight: '60%',
+    // maxHeight: '10%',
   },
   savedAddressesContent: {
     flexGrow: 1,
